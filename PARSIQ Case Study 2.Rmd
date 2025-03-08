@@ -1,0 +1,59 @@
+---
+title: "Frequency of each unique address that interact with Lido Protocol in January"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(httr)
+
+url <- "https://api.parsiq.net/tsunami/eip155-137/v1/calls"
+
+queryString <- list(
+  contract = "0x87BAe5cfA648fC1a82D4dbBC48C3d7439c9015A1",
+  block_number_start = "40984716",
+  block_number_end = "latest",
+  include_events = "false",
+  limit = "100"
+)
+
+response <- VERB("GET", url, add_headers('authorization' = 'Bearer "BEARER_TOKEN_HERE" '), query = queryString, content_type("application/octet-stream"), accept("application/json"))
+
+content(response, "text")
+
+k <- content(response, "text")
+
+library(jsonlite)
+library(tidyverse)
+
+parsed_text <- fromJSON(k)
+
+items_df <- parsed_text$items
+
+selected_data <- items_df[, c("origin", "tx_hash")]
+
+unique_rows <- unique(selected_data)
+
+frequency <- table(unique_rows$origin)
+
+frequency <- sort(frequency, decreasing = TRUE)
+
+frequency <- as.data.frame(frequency)
+
+frequency$category <- cut(frequency$Freq, breaks = c(0, 4, 8, 16), labels = c("low", "medium", "high"))
+
+L <- ggplot(frequency, aes(x = "", y = Freq, fill = category)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  scale_fill_brewer(type = "qual", palette = "Set1") +
+  labs(x = NULL, y = NULL, fill = NULL, title = "How frequent do each unique address interact with Lido Protocol in January") +
+  theme_void()
+
+L
+
+
+frequency_new <- frequency$Var1
+frequency_new <- as.data.frame(frequency_new)
+
+
+```
+
