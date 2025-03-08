@@ -1,0 +1,42 @@
+---
+title: "List of active users that uses Multichain bridge to bridge
+  PRQ tokens from BSC to Ethereum in the January 2023"
+output: pdf_document
+---
+
+```{r pressure, echo=FALSE}
+library(httr)
+
+url <- "https://api.parsiq.net/tsunami/eip155-1/v1/address/0x533e3c0e6b48010873b947bddc4721b1bdff9648/transfers"
+
+queryString <- list(
+  direction = "outgoing",
+  timestamp_start = "1672531200",
+  timestamp_end = "1675555200",
+  limit = "1000",
+  asset_type = "ft",
+  contract = "0x362bc847A3a9637d3af6624EeC853618a43ed7D2"
+)
+#Remember to replace "Your API Key" to your actual API Key
+response <- VERB("GET", url, add_headers('authorization' = 'Bearer "BEARER_TOKEN_HERE" '), query = queryString, content_type("application/octet-stream"), accept("application/json"))
+
+# Need to add a K or any variable so that it makes things easier
+k <- content(response, "text") 
+
+# add 2 packages 
+library(jsonlite)
+library(tidyverse)
+
+parsed_text <- fromJSON(k)
+
+items_df <- parsed_text$items
+
+#use View to double check whether everything is correct
+View(items_df)
+
+#create a frequency table of recipients
+Q <- select(items_df, "recipient")
+Q <- table(Q)
+View(Q)
+```
+
